@@ -41,13 +41,15 @@ session = requests_cache.CachedSession(
 # Companies House API allows 600 requests every 5 mins
 @sleep_and_retry
 @limits(calls=1, period=0.6)
-def make_request(url, input, input_type, response_type):
+def make_request(url, input, input_type, response_type, **kwargs):
     """Query Companies House API."""
     # time.sleep(0.5)
     try:
-        response = session.get(url, auth=basic_auth)
+        response = session.get(url, auth=basic_auth, **kwargs)
         response.raise_for_status()
         if response.status_code == 200:
+            if 'json' not in kwargs.get('headers', {}).get('Accept', 'application/json'):
+                return response.content
             return response.json()
     except requests.exceptions.RequestException as err:
         print (err, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
@@ -77,10 +79,34 @@ def get_company(company_id):
     url = "https://api.company-information.service.gov.uk/company/" + company_id
     return make_request(url, company_id, 'company', 'company')
 
+"""Category can be one of
+    accounts
+    address
+    annual-return
+    capital
+    change-of-name
+    incorporation
+    liquidation
+    miscellaneous
+    mortgage
+    officers
+    resolution
+"""
+
 def get_address_changes(company_id):
     """Get address changes for input company."""
     url = "https://api.company-information.service.gov.uk/company/" + str(company_id) + "/filing-history?category=address"
     return make_request(url, company_id, 'company', 'address history')
+
+def get_officer_changes(company_id):
+    """Get address changes for input company."""
+    url = "https://api.company-information.service.gov.uk/company/" + str(company_id) + "/filing-history?category=officers"
+    return make_request(url, company_id, 'company', 'officers history')
+
+def get_accounts_changes(company_id):
+    """Get address changes for input company."""
+    url = "https://api.company-information.service.gov.uk/company/" + str(company_id) + "/filing-history?category=accounts"
+    return make_request(url, company_id, 'company', 'accounts history')
 
 def get_correspondance_address(officer_id):
     """Get correspondance address for input officer."""
