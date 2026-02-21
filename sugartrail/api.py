@@ -1,7 +1,9 @@
-import requests
-import time
+import datetime
 import os
 import functools
+
+import requests
+import requests_cache
 from ratelimit import limits, sleep_and_retry
 
 access_token = ""
@@ -29,6 +31,13 @@ def test():
     else:
         return False
 
+
+session = requests_cache.CachedSession(
+    match_headers=("Accept",),
+    expire_after=datetime.timedelta(days=7),
+    allowable_codes=(200, 404,)
+)
+
 # Companies House API allows 600 requests every 5 mins
 @sleep_and_retry
 @limits(calls=1, period=0.6)
@@ -36,7 +45,7 @@ def make_request(url, input, input_type, response_type):
     """Query Companies House API."""
     # time.sleep(0.5)
     try:
-        response = requests.get(url, auth=basic_auth)
+        response = session.get(url, auth=basic_auth)
         response.raise_for_status()
         if response.status_code == 200:
             return response.json()
