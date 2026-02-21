@@ -142,6 +142,9 @@ def get_duplicate_officers(officer_id):
 
 def get_companies_at_address(address):
     """Get companies at input address location."""
+    # TODO: Sometimes this fails because the address data isn't great, and we could speak to mapbox / google maps to fix it
+    #       then we get more connections and less 404s.
+    #       It should probably be in the wrapper function and not here though.
     url = "https://api.company-information.service.gov.uk/advanced-search/companies?location=" + address + "&size=" + "5000"
     return make_request(url, address, 'address', 'companies')
 

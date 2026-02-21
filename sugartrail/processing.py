@@ -38,6 +38,7 @@ def get_companies_from_address_database(address, company_data):
 def process_address_changes(address_changes):
     """Attempt retrieval of 'new_address' value if Companies House record is
     incomplete."""
+    address_changes['items'] = [i for i in address_changes['items'] if 'description_values' in i]
     for i in reversed(range(1,len(address_changes['items']))):
         if 'new_address' not in address_changes['items'][i]['description_values'].keys():
             if 'old_address' in address_changes['items'][i-1]['description_values'].keys():
@@ -74,6 +75,10 @@ def build_address_history(company_id):
                         entry["lat"] = ""
                         entry["lon"] = ""
                         entry["company_number"] = str(company_id)
+                        if 'description_values' not in change:
+                            print('build_address_history change missing description_values')
+                            print(change)
+                            continue
                         if 'old_address' in change['description_values']:
                             entry["address"] = change['description_values']['old_address']
                         else:
@@ -81,6 +86,10 @@ def build_address_history(company_id):
                         if i+1 < len(address_changes['items']):
                             entry["start_date"] = str(address_changes['items'][i+1]['date'])
                         else:
+                            if 'date_of_creation' not in company_info_subset:
+                                print('build_address_history company_info_subset missing date_of_creation')
+                                print(company_info_subset)
+                                continue
                             entry["start_date"] = company_info_subset['date_of_creation']
                         entry["end_date"] = str(change['date'])
                         addresses.append(entry)
@@ -93,7 +102,10 @@ def build_address_history(company_id):
                         else:
                             entry[address_keys[k]] = None
                     entry["company_number"] = str(company_id)
-                    entry['address'] = sugartrail.utils.normalise_address(entry['address'])
+                    if entry['address'] is None:
+                        print(entry, company_info)
+                    else:
+                        entry['address'] = sugartrail.utils.normalise_address(entry['address'])
                     entry["lat"] = ""
                     entry["lon"] = ""
                     return [entry]
