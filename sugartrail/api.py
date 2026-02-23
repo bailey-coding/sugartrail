@@ -1,16 +1,18 @@
 import datetime
 import os
 import functools
+import time
 
+import ipywidgets as widgets
 import requests
 import requests_cache
-from ratelimit import limits, sleep_and_retry
 
 access_token = ""
 username = ""
 password = ""
 size = "5000"
 basic_auth = requests.auth.HTTPBasicAuth(username, password)
+debug_view = widgets.Output(layout={'border': '1px solid black'})
 
 def auth(func):
     """Checks if user has set API Key."""
@@ -39,13 +41,26 @@ session = requests_cache.CachedSession(
 )
 
 # Companies House API allows 600 requests every 5 mins
-@sleep_and_retry
-@limits(calls=1, period=0.6)
+_last_live_request = 0.0
+
+@debug_view.capture()
 def make_request(url, input, input_type, response_type, **kwargs):
-    """Query Companies House API."""
-    # time.sleep(0.5)
+    """Query Companies House API.
+
+    Rate-limits only live (non-cached) requests so that cached responses
+    from ``requests_cache`` are returned instantly.
+    """
+    global _last_live_request
+    # Only wait if the previous request was a live API call
+    now = time.monotonic()
+    if _last_live_request > 0:
+        elapsed = now - _last_live_request
+        if elapsed < 0.6:
+            time.sleep(0.6 - elapsed)
     try:
         response = session.get(url, auth=basic_auth, **kwargs)
+        if not getattr(response, 'from_cache', False):
+            _last_live_request = time.monotonic()
         response.raise_for_status()
         if response.status_code == 200:
             if 'json' not in kwargs.get('headers', {}).get('Accept', 'application/json'):
