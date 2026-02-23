@@ -24,6 +24,7 @@ def condense_path(path):
 def asciiify_path(path):
     for i, item in enumerate(path):
         path[i]['node_index'] = int(1+i/51)*alc[i%51]
+    for i, item in enumerate(path):
         path[i]['link'] = ", ".join([d['node_index'] for d in path if d['id'] in path[i]['link']])
     return path
 

@@ -1,4 +1,7 @@
 import IPython
+import ipywidgets as widgets
+
+progress_view = widgets.Output(layout={'border': '1px solid black'})
 
 class Progress:
     """Class attributes store the progress of each hop."""
@@ -16,8 +19,8 @@ class Progress:
         self.selected_officers = []
         self.outro_print = ""
 
+    @progress_view.capture(clear_output=True)
     def print_progress(self):
-        IPython.display.clear_output(wait=True)
         if self.pre_print:
             print(self.pre_print)
             print("-------------")

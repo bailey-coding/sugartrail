@@ -59,3 +59,7 @@ notebooks/investigations
 
 *.DS_Store
 http_cache.sqlite
+/.env
+/sugartrail_networks.db
+/sugartrail_networks.db-shm
+/sugartrail_networks.db-wal

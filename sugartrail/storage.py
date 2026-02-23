@@ -1,3 +1,4 @@
+from pathlib import Path
 import sqlite3
 import json
 
@@ -93,12 +94,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_address_history_unique
     ON address_history(company_number, address, COALESCE(start_date, ''));
 """
 
+def get_default_path():
+    return Path(__file__).parent.parent / "sugartrail_networks.db"
 
 class SQLiteStore:
     """SQLite-backed storage for network graph state."""
 
-    def __init__(self, db_path='sugartrail_networks.db'):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = db_path or get_default_path()
         self._conn = None
         self._ensure_schema()
 
@@ -555,7 +558,7 @@ class GraphProxy:
 _default_store = None
 
 
-def get_store(db_path='sugartrail_networks.db'):
+def get_store(db_path=None):
     global _default_store
     if _default_store is None or _default_store.db_path != db_path:
         _default_store = SQLiteStore(db_path)

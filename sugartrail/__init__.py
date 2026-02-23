@@ -1,4 +1,5 @@
 from . import api
+from . import storage
 from . import base
 from . import processing
 from . import mapvis
@@ -8,4 +9,3 @@ from . import progress
 from . import utils
 from . import graphvis
 from . import multinetwork
-from . import const
